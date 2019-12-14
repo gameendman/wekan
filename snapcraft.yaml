@@ -1,4 +1,4 @@
-name: wekan
+name: wekan-ag
 version: 0
 version-script: git describe --tags |  cut -c 2-
 summary: The open-source kanban
