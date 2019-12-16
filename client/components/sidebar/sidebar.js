@@ -233,7 +233,7 @@ Template.boardMenuPopup.helpers({
     const queryParams = {
       authToken: Accounts._storedLoginToken(),
     };
-    const jdata = FlowRouter.path('/api/boards/:boardId/export', params, queryParams);
+    var jdata = FlowRouter.path('/api/boards/:boardId/export', params, queryParams);
     var jdata = JSON.parse(jdata);
     //init exceljs workbook
     var workbook = new Excel.Workbook();
