@@ -225,6 +225,19 @@ Template.boardMenuPopup.helpers({
     const boardId = Session.get('currentBoard');
     return `wekan-export-board-${boardId}.json`;
   },
+  exportUrlExcel() {
+    const params = {
+      boardId: Session.get('currentBoard'),
+    };
+    const queryParams = {
+      authToken: Accounts._storedLoginToken(),
+    };
+    return FlowRouter.path('/api/boards/:boardId/export', params, queryParams);
+  }
+  exportFilenameExcel() {
+    const boardId = Session.get('currentBoard');
+    return `wekan-export-board-${boardId}.json`;
+  },
 });
 
 Template.memberPopup.events({

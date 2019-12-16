@@ -177,6 +177,7 @@ template(name="boardMenuPopup")
       hr
       ul.pop-over-list
         li: a(href="{{exportUrl}}", download="{{exportFilename}}") {{_ 'export-board'}}
+        li: a(href="{{exportUrlExcel}}", download="{{exportFilenameExcel}}") {{_ 'export-board'}}
         unless currentBoard.isTemplatesBoard
           li: a.js-archive-board {{_ 'archive-board'}}
         li: a.js-outgoing-webhooks {{_ 'outgoing-webhooks'}}
