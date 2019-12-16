@@ -1,4 +1,7 @@
-import { Cookies } from 'meteor/ostrio:cookies';
+import {
+  Cookies
+} from 'meteor/ostrio:cookies';
+var Excel = require('exceljs');
 const cookies = new Cookies();
 Sidebar = null;
 
@@ -103,28 +106,26 @@ BlazeComponent.extendComponent({
   },
 
   events() {
-    return [
-      {
-        'click .js-hide-sidebar': this.hide,
-        'click .js-toggle-sidebar': this.toggle,
-        'click .js-back-home': this.setView,
-        'click .js-toggle-minicard-label-text'() {
-          currentUser = Meteor.user();
-          if (currentUser) {
-            Meteor.call('toggleMinicardLabelText');
+    return [{
+      'click .js-hide-sidebar': this.hide,
+      'click .js-toggle-sidebar': this.toggle,
+      'click .js-back-home': this.setView,
+      'click .js-toggle-minicard-label-text'() {
+        currentUser = Meteor.user();
+        if (currentUser) {
+          Meteor.call('toggleMinicardLabelText');
+        } else {
+          if (cookies.has('hiddenMinicardLabelText')) {
+            cookies.remove('hiddenMinicardLabelText');
           } else {
-            if (cookies.has('hiddenMinicardLabelText')) {
-              cookies.remove('hiddenMinicardLabelText');
-            } else {
-              cookies.set('hiddenMinicardLabelText', 'true');
-            }
+            cookies.set('hiddenMinicardLabelText', 'true');
           }
-        },
-        'click .js-shortcuts'() {
-          FlowRouter.go('shortcuts');
-        },
+        }
       },
-    ];
+      'click .js-shortcuts'() {
+        FlowRouter.go('shortcuts');
+      },
+    }, ];
   },
 }).register('sidebar');
 
@@ -232,8 +233,86 @@ Template.boardMenuPopup.helpers({
     const queryParams = {
       authToken: Accounts._storedLoginToken(),
     };
-    return FlowRouter.path('/api/boards/:boardId/export', params, queryParams);
-  }
+    const jdata = FlowRouter.path('/api/boards/:boardId/export', params, queryParams);
+    var jdata = JSON.parse(jdata);
+    //init exceljs workbook
+    var workbook = new Excel.Workbook();
+    workbook.creator = 'wekan';
+    workbook.lastModifiedBy = 'wekan';
+    workbook.created = new Date();
+    workbook.modified = new Date();
+    workbook.lastPrinted = new Date();
+    var filename = jdata.title + "-看板导出.xlsx";
+    //init worksheet
+    var worksheet = workbook.addWorksheet(jdata.title, {
+      properties: {
+        tabColor: {
+          argb: 'FFC0000'
+        }
+      }
+    });
+    //get worksheet
+    var ws = workbook.getWorksheet(jdata.title);
+    //init columns
+    ws.columns = [{
+      key: 'a'
+    }, {
+      key: 'b'
+    }, {
+      key: 'c'
+    }, {
+      key: 'd'
+    }, {
+      key: 'e'
+    }, {
+      key: 'f'
+    }]
+    //add title line
+    ws.mergeCells('A1:H1');
+    ws.getCell('A1').value = jdata.title;
+    ws.getCell('A1').alignment = {
+      vertical: 'middle',
+      horizontal: 'center'
+    };
+    //get member info
+    var jmem = "";
+    var jmeml = {};
+    for (var i in jdata.users) {
+      jmem = jmem + jdata.users[i].profile.fullname + ",";
+      jmeml[jdata.users[i]._id] = jdata.users[i].profile.fullname;
+    }
+    jmem = jmem.substr(0, jmem.length - 1);
+    //get kanban list info
+    var jlist = {};
+    for (var k in jdata.lists) {
+      jlist[jdata.lists[k]._id] = jdata.lists[k].title;
+    }
+    //add data +8 hours
+    function add8hours(jdate) {
+      curdate = new Date(jdate);
+      return new Date(curdate.setHours(curdate.getHours() + 8));
+    }
+    //add kanban info
+    ws.addRow().values = ['创建时间', add8hours(jdata.createdAt), '最近更新时间', add8hours(jdata.modifiedAt), '成员', jmem]
+    //add card title
+    ws.addRow().values = ['编号', '标题', '描述', '创建人', '创建时间', '更新时间', '列表', '成员', '']
+    //add card info
+    for (var i in jdata.cards) {
+      jcard = jdata.cards[i]
+      //get member info
+      var jcmem = "";
+      for (var j in jcard.members) {
+        jcmem = jcmem + jmeml[jcard.members[j]];
+      }
+      //add card detail
+      t = Number(i) + 1
+      ws.addRow().values = [t.toString(), jcard.title, jcard.discription, jmeml[jcard.userId], add8hours(jcard.createdAt), add8hours(jcard.dateLastActivity), jlist[jcard.listId], jcmem];
+    }
+    workbook.xlsx.writeBuffer()
+      .then(function(exporte) {
+        // done
+      });
+  },
   exportFilenameExcel() {
     const boardId = Session.get('currentBoard');
     return `wekan-export-board-${boardId}.json`;
@@ -249,7 +328,10 @@ Template.memberPopup.events({
   'click .js-remove-member': Popup.afterConfirm('removeMember', function() {
     const boardId = Session.get('currentBoard');
     const memberId = this.userId;
-    Cards.find({ boardId, members: memberId }).forEach(card => {
+    Cards.find({
+      boardId,
+      members: memberId
+    }).forEach(card => {
       card.unassignMember(memberId);
     });
     Boards.findOne(boardId).removeMember(memberId);
@@ -320,14 +402,19 @@ BlazeComponent.extendComponent({
   },
   integrations() {
     const boardId = this.boardId();
-    return Integrations.find({ boardId: `${boardId}` }).fetch();
+    return Integrations.find({
+      boardId: `${boardId}`
+    }).fetch();
   },
   types() {
     return Integrations.Const.WEBHOOK_TYPES;
   },
   integration(cond) {
     const boardId = this.boardId();
-    const condition = { boardId, ...cond };
+    const condition = {
+      boardId,
+      ...cond
+    };
     for (const k in condition) {
       if (!condition[k]) delete condition[k];
     }
@@ -337,56 +424,59 @@ BlazeComponent.extendComponent({
     this.disabled = new ReactiveVar(false);
   },
   events() {
-    return [
-      {
-        'click a.flex'(evt) {
-          this.disabled.set(!this.disabled.get());
-          $(evt.target).toggleClass(CKCLS, this.disabled.get());
-        },
-        submit(evt) {
-          evt.preventDefault();
-          const url = evt.target.url.value;
-          const boardId = this.boardId();
-          let id = null;
-          let integration = null;
-          const title = evt.target.title.value;
-          const token = evt.target.token.value;
-          const type = evt.target.type.value;
-          const enabled = !this.disabled.get();
-          let remove = false;
-          const values = {
-            url,
-            type,
-            token,
-            title,
-            enabled,
-          };
-          if (evt.target.id) {
-            id = evt.target.id.value;
-            integration = this.integration({ _id: id });
-            remove = !url;
-          } else if (url) {
-            integration = this.integration({ url, token });
-          }
-          if (remove) {
-            Integrations.remove(integration._id);
-          } else if (integration && integration._id) {
-            Integrations.update(integration._id, {
-              $set: values,
-            });
-          } else if (url) {
-            Integrations.insert({
-              ...values,
-              userId: Meteor.userId(),
-              enabled: true,
-              boardId,
-              activities: ['all'],
-            });
-          }
-          Popup.close();
-        },
+    return [{
+      'click a.flex'(evt) {
+        this.disabled.set(!this.disabled.get());
+        $(evt.target).toggleClass(CKCLS, this.disabled.get());
       },
-    ];
+      submit(evt) {
+        evt.preventDefault();
+        const url = evt.target.url.value;
+        const boardId = this.boardId();
+        let id = null;
+        let integration = null;
+        const title = evt.target.title.value;
+        const token = evt.target.token.value;
+        const type = evt.target.type.value;
+        const enabled = !this.disabled.get();
+        let remove = false;
+        const values = {
+          url,
+          type,
+          token,
+          title,
+          enabled,
+        };
+        if (evt.target.id) {
+          id = evt.target.id.value;
+          integration = this.integration({
+            _id: id
+          });
+          remove = !url;
+        } else if (url) {
+          integration = this.integration({
+            url,
+            token
+          });
+        }
+        if (remove) {
+          Integrations.remove(integration._id);
+        } else if (integration && integration._id) {
+          Integrations.update(integration._id, {
+            $set: values,
+          });
+        } else if (url) {
+          Integrations.insert({
+            ...values,
+            userId: Meteor.userId(),
+            enabled: true,
+            boardId,
+            activities: ['all'],
+          });
+        }
+        Popup.close();
+      },
+    }, ];
   },
 }).register('outgoingWebhooksPopup');
 
@@ -456,16 +546,14 @@ BlazeComponent.extendComponent({
   },
 
   events() {
-    return [
-      {
-        'click .js-select-background'(evt) {
-          const currentBoard = Boards.findOne(Session.get('currentBoard'));
-          const newColor = this.currentData().toString();
-          currentBoard.setColor(newColor);
-          evt.preventDefault();
-        },
+    return [{
+      'click .js-select-background'(evt) {
+        const currentBoard = Boards.findOne(Session.get('currentBoard'));
+        const newColor = this.currentData().toString();
+        currentBoard.setColor(newColor);
+        evt.preventDefault();
       },
-    ];
+    }, ];
   },
 }).register('boardChangeColorPopup');
 
@@ -490,27 +578,21 @@ BlazeComponent.extendComponent({
   },
 
   boards() {
-    return Boards.find(
-      {
-        archived: false,
-        'members.userId': Meteor.userId(),
-      },
-      {
-        sort: ['title'],
-      },
-    );
+    return Boards.find({
+      archived: false,
+      'members.userId': Meteor.userId(),
+    }, {
+      sort: ['title'],
+    }, );
   },
 
   lists() {
-    return Lists.find(
-      {
-        boardId: this.currentBoard._id,
-        archived: false,
-      },
-      {
-        sort: ['title'],
-      },
-    );
+    return Lists.find({
+      boardId: this.currentBoard._id,
+      archived: false,
+    }, {
+      sort: ['title'],
+    }, );
   },
 
   hasLists() {
@@ -530,64 +612,62 @@ BlazeComponent.extendComponent({
   },
 
   events() {
-    return [
-      {
-        'click .js-field-has-subtasks'(evt) {
-          evt.preventDefault();
-          this.currentBoard.allowsSubtasks = !this.currentBoard.allowsSubtasks;
-          this.currentBoard.setAllowsSubtasks(this.currentBoard.allowsSubtasks);
-          $(`.js-field-has-subtasks ${MCB}`).toggleClass(
-            CKCLS,
-            this.currentBoard.allowsSubtasks,
-          );
-          $('.js-field-has-subtasks').toggleClass(
-            CKCLS,
-            this.currentBoard.allowsSubtasks,
-          );
-          $('.js-field-deposit-board').prop(
-            'disabled',
-            !this.currentBoard.allowsSubtasks,
-          );
-        },
-        'change .js-field-deposit-board'(evt) {
-          let value = evt.target.value;
-          if (value === 'null') {
-            value = null;
-          }
-          this.currentBoard.setSubtasksDefaultBoardId(value);
-          evt.preventDefault();
-        },
-        'change .js-field-deposit-list'(evt) {
-          this.currentBoard.setSubtasksDefaultListId(evt.target.value);
-          evt.preventDefault();
-        },
-        'click .js-field-show-parent-in-minicard'(evt) {
-          const value =
-            evt.target.id ||
-            $(evt.target).parent()[0].id ||
-            $(evt.target)
-              .parent()[0]
-              .parent()[0].id;
-          const options = [
-            'prefix-with-full-path',
-            'prefix-with-parent',
-            'subtext-with-full-path',
-            'subtext-with-parent',
-            'no-parent',
-          ];
-          options.forEach(function(element) {
-            if (element !== value) {
-              $(`#${element} ${MCB}`).toggleClass(CKCLS, false);
-              $(`#${element}`).toggleClass(CKCLS, false);
-            }
-          });
-          $(`#${value} ${MCB}`).toggleClass(CKCLS, true);
-          $(`#${value}`).toggleClass(CKCLS, true);
-          this.currentBoard.setPresentParentTask(value);
-          evt.preventDefault();
-        },
+    return [{
+      'click .js-field-has-subtasks'(evt) {
+        evt.preventDefault();
+        this.currentBoard.allowsSubtasks = !this.currentBoard.allowsSubtasks;
+        this.currentBoard.setAllowsSubtasks(this.currentBoard.allowsSubtasks);
+        $(`.js-field-has-subtasks ${MCB}`).toggleClass(
+          CKCLS,
+          this.currentBoard.allowsSubtasks,
+        );
+        $('.js-field-has-subtasks').toggleClass(
+          CKCLS,
+          this.currentBoard.allowsSubtasks,
+        );
+        $('.js-field-deposit-board').prop(
+          'disabled',
+          !this.currentBoard.allowsSubtasks,
+        );
       },
-    ];
+      'change .js-field-deposit-board'(evt) {
+        let value = evt.target.value;
+        if (value === 'null') {
+          value = null;
+        }
+        this.currentBoard.setSubtasksDefaultBoardId(value);
+        evt.preventDefault();
+      },
+      'change .js-field-deposit-list'(evt) {
+        this.currentBoard.setSubtasksDefaultListId(evt.target.value);
+        evt.preventDefault();
+      },
+      'click .js-field-show-parent-in-minicard'(evt) {
+        const value =
+          evt.target.id ||
+          $(evt.target).parent()[0].id ||
+          $(evt.target)
+          .parent()[0]
+          .parent()[0].id;
+        const options = [
+          'prefix-with-full-path',
+          'prefix-with-parent',
+          'subtext-with-full-path',
+          'subtext-with-parent',
+          'no-parent',
+        ];
+        options.forEach(function(element) {
+          if (element !== value) {
+            $(`#${element} ${MCB}`).toggleClass(CKCLS, false);
+            $(`#${element}`).toggleClass(CKCLS, false);
+          }
+        });
+        $(`#${value} ${MCB}`).toggleClass(CKCLS, true);
+        $(`#${value}`).toggleClass(CKCLS, true);
+        this.currentBoard.setPresentParentTask(value);
+        evt.preventDefault();
+      },
+    }, ];
   },
 }).register('boardSubtaskSettingsPopup');
 
@@ -637,26 +717,24 @@ BlazeComponent.extendComponent({
   },
 
   events() {
-    return [
-      {
-        'keyup input'() {
-          this.setError('');
-        },
-        'click .js-select-member'() {
-          const userId = this.currentData()._id;
-          const currentBoard = Boards.findOne(Session.get('currentBoard'));
-          if (!currentBoard.hasMember(userId)) {
-            this.inviteUser(userId);
-          }
-        },
-        'click .js-email-invite'() {
-          const idNameEmail = $('.js-search-member input').val();
-          if (idNameEmail.indexOf('@') < 0 || this.isValidEmail(idNameEmail)) {
-            this.inviteUser(idNameEmail);
-          } else this.setError('email-invalid');
-        },
+    return [{
+      'keyup input'() {
+        this.setError('');
       },
-    ];
+      'click .js-select-member'() {
+        const userId = this.currentData()._id;
+        const currentBoard = Boards.findOne(Session.get('currentBoard'));
+        if (!currentBoard.hasMember(userId)) {
+          this.inviteUser(userId);
+        }
+      },
+      'click .js-email-invite'() {
+        const idNameEmail = $('.js-search-member input').val();
+        if (idNameEmail.indexOf('@') < 0 || this.isValidEmail(idNameEmail)) {
+          this.inviteUser(idNameEmail);
+        } else this.setError('email-invalid');
+      },
+    }, ];
   },
 }).register('addMemberPopup');
 
