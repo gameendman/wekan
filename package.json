@@ -69,6 +69,6 @@
     "qs": "^6.8.0",
     "source-map-support": "^0.5.12",
     "xss": "^1.0.6",
-    "exceljs":"^3.4.0"
+    "exceljs": "^3.4.0"
   }
 }
