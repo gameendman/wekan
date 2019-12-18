@@ -311,7 +311,7 @@ var jdata = result;
       });
     return exporte;
 
-#    return result;
+//    return result;
   }
 
 
