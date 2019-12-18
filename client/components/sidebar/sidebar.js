@@ -308,14 +308,16 @@ Template.boardMenuPopup.helpers({
       t = Number(i) + 1
       ws.addRow().values = [t.toString(), jcard.title, jcard.discription, jmeml[jcard.userId], add8hours(jcard.createdAt), add8hours(jcard.dateLastActivity), jlist[jcard.listId], jcmem];
     }
+    var exporte = Buffer();
     workbook.xlsx.writeBuffer()
       .then(function(exporte) {
         // done
       });
+    return exporte;
   },
   exportFilenameExcel() {
     const boardId = Session.get('currentBoard');
-    return `wekan-export-board-${boardId}.json`;
+    return `wekan-export-board-${boardId}.xlsx`;
   },
 });
 
