@@ -1,7 +1,6 @@
 import {
   Cookies
 } from 'meteor/ostrio:cookies';
-var Excel = require('exceljs');
 const cookies = new Cookies();
 Sidebar = null;
 
@@ -233,87 +232,7 @@ Template.boardMenuPopup.helpers({
     const queryParams = {
       authToken: Accounts._storedLoginToken(),
     };
-    var jdata = FlowRouter.path('/api/boards/:boardId/export', params, queryParams);
-    var jdata = JSON.parse(jdata);
-    //init exceljs workbook
-    var workbook = new Excel.Workbook();
-    workbook.creator = 'wekan';
-    workbook.lastModifiedBy = 'wekan';
-    workbook.created = new Date();
-    workbook.modified = new Date();
-    workbook.lastPrinted = new Date();
-    var filename = jdata.title + "-看板导出.xlsx";
-    //init worksheet
-    var worksheet = workbook.addWorksheet(jdata.title, {
-      properties: {
-        tabColor: {
-          argb: 'FFC0000'
-        }
-      }
-    });
-    //get worksheet
-    var ws = workbook.getWorksheet(jdata.title);
-    //init columns
-    ws.columns = [{
-      key: 'a'
-    }, {
-      key: 'b'
-    }, {
-      key: 'c'
-    }, {
-      key: 'd'
-    }, {
-      key: 'e'
-    }, {
-      key: 'f'
-    }]
-    //add title line
-    ws.mergeCells('A1:H1');
-    ws.getCell('A1').value = jdata.title;
-    ws.getCell('A1').alignment = {
-      vertical: 'middle',
-      horizontal: 'center'
-    };
-    //get member info
-    var jmem = "";
-    var jmeml = {};
-    for (var i in jdata.users) {
-      jmem = jmem + jdata.users[i].profile.fullname + ",";
-      jmeml[jdata.users[i]._id] = jdata.users[i].profile.fullname;
-    }
-    jmem = jmem.substr(0, jmem.length - 1);
-    //get kanban list info
-    var jlist = {};
-    for (var k in jdata.lists) {
-      jlist[jdata.lists[k]._id] = jdata.lists[k].title;
-    }
-    //add data +8 hours
-    function add8hours(jdate) {
-      curdate = new Date(jdate);
-      return new Date(curdate.setHours(curdate.getHours() + 8));
-    }
-    //add kanban info
-    ws.addRow().values = ['创建时间', add8hours(jdata.createdAt), '最近更新时间', add8hours(jdata.modifiedAt), '成员', jmem]
-    //add card title
-    ws.addRow().values = ['编号', '标题', '描述', '创建人', '创建时间', '更新时间', '列表', '成员', '']
-    //add card info
-    for (var i in jdata.cards) {
-      jcard = jdata.cards[i]
-      //get member info
-      var jcmem = "";
-      for (var j in jcard.members) {
-        jcmem = jcmem + jmeml[jcard.members[j]];
-      }
-      //add card detail
-      t = Number(i) + 1
-      ws.addRow().values = [t.toString(), jcard.title, jcard.discription, jmeml[jcard.userId], add8hours(jcard.createdAt), add8hours(jcard.dateLastActivity), jlist[jcard.listId], jcmem];
-    }
-    var exporte = Buffer();
-    workbook.xlsx.writeBuffer()
-      .then(function(exporte) {
-        // done
-      });
-    return exporte;
+    return FlowRouter.path('/api/boards/:boardId/exportExcel', params, queryParams);
   },
   exportFilenameExcel() {
     const boardId = Session.get('currentBoard');
