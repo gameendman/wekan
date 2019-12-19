@@ -244,7 +244,9 @@ var jdata = result;
       properties: {
         tabColor: {
           argb: 'FFC0000'
-        }
+        },
+         {
+  pageSetup:{paperSize: 9, orientation:'landscape'}
       }
     });
     //get worksheet
@@ -294,14 +296,14 @@ var jdata = result;
     ws.addRow().values = ['编号', '标题', '描述', '创建人', '创建时间', '更新时间', '列表', '成员', '']
     //add card info
     for (var i in jdata.cards) {
-      jcard = jdata.cards[i]
+      var jcard = jdata.cards[i]
       //get member info
       var jcmem = "";
       for (var j in jcard.members) {
         jcmem = jcmem + jmeml[jcard.members[j]];
       }
       //add card detail
-      t = Number(i) + 1
+      var t = Number(i) + 1
       ws.addRow().values = [t.toString(), jcard.title, jcard.discription, jmeml[jcard.userId], add8hours(jcard.createdAt), add8hours(jcard.dateLastActivity), jlist[jcard.listId], jcmem];
     }
     var exporte = Buffer();

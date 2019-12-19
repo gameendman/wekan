@@ -302,6 +302,7 @@
   "error-username-taken": "此用户名已存在",
   "error-email-taken": "此EMail已存在",
   "export-board": "导出看板",
+  "export-board-excel": "导出看板至Excel",
   "sort": "排序",
   "sort-desc": "点此来将列表排序",
   "list-sort-by": "按此来将列表排序：",
