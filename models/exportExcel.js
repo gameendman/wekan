@@ -285,7 +285,7 @@ var jdata = result;
     }
     //add data +8 hours
     function add8hours(jdate) {
-      curdate = new Date(jdate);
+      var curdate = new Date(jdate);
       return new Date(curdate.setHours(curdate.getHours() + 8));
     }
     //add kanban info
