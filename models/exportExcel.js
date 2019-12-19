@@ -306,7 +306,7 @@ export class Exporter {
         key: 'h',
         width: 18
       }
-    ]
+    ];
 
     //add title line
     ws.mergeCells('A1:H1');
@@ -450,6 +450,7 @@ export class Exporter {
       ws.getCell('H' + y).alignment = {
         wrapText: true
       };
+    }
       var exporte = Buffer();
       workbook.xlsx.writeBuffer()
         .then(function(exporte) {
