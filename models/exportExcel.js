@@ -21,7 +21,7 @@ if (Meteor.isServer) {
    * @param {string} boardId the ID of the board we are exporting
    * @param {string} authToken the loginToken
    */
-var Excel = require('exceljs');
+  var Excel = require('exceljs');
   JsonRoutes.add('get', '/api/boards/:boardId/exportExcel', function(req, res) {
     const boardId = req.params.boardId;
     let user = null;
@@ -34,7 +34,10 @@ var Excel = require('exceljs');
       });
     } else if (!Meteor.settings.public.sandstorm) {
       Authentication.checkUserId(req.userId);
-      user = Users.findOne({ _id: req.userId, isAdmin: true });
+      user = Users.findOne({
+        _id: req.userId,
+        isAdmin: true
+      });
     }
 
     const exporter = new Exporter(boardId);
@@ -63,10 +66,14 @@ export class Exporter {
     const os = Npm.require('os');
     const path = Npm.require('path');
 
-    const byBoard = { boardId: this._boardId };
+    const byBoard = {
+      boardId: this._boardId
+    };
     const byBoardNoLinked = {
       boardId: this._boardId,
-      linkedId: { $in: ['', null] },
+      linkedId: {
+        $in: ['', null]
+      },
     };
     // we do not want to retrieve boardId in related elements
     const noBoardId = {
@@ -88,10 +95,15 @@ export class Exporter {
     result.lists = Lists.find(byBoard, noBoardId).fetch();
     result.cards = Cards.find(byBoardNoLinked, noBoardId).fetch();
     result.swimlanes = Swimlanes.find(byBoard, noBoardId).fetch();
-    result.customFields = CustomFields.find(
-      { boardIds: { $in: [this.boardId] } },
-      { fields: { boardId: 0 } },
-    ).fetch();
+    result.customFields = CustomFields.find({
+      boardIds: {
+        $in: [this.boardId]
+      }
+    }, {
+      fields: {
+        boardId: 0
+      }
+    }, ).fetch();
     result.comments = CardComments.find(byBoard, noBoardId).fetch();
     result.activities = Activities.find(byBoard, noBoardId).fetch();
     result.rules = Rules.find(byBoard, noBoardId).fetch();
@@ -119,16 +131,14 @@ export class Exporter {
     });
     result.rules.forEach(rule => {
       result.triggers.push(
-        ...Triggers.find(
-          {
+        ...Triggers.find({
             _id: rule.triggerId,
           },
           noBoardId,
         ).fetch(),
       );
       result.actions.push(
-        ...Actions.find(
-          {
+        ...Actions.find({
             _id: rule.actionId,
           },
           noBoardId,
@@ -230,7 +240,7 @@ export class Exporter {
         return user;
       });
 
-var jdata = result;
+    var jdata = result;
     //init exceljs workbook
     var workbook = new Excel.Workbook();
     workbook.creator = 'wekan';
@@ -244,34 +254,74 @@ var jdata = result;
       properties: {
         tabColor: {
           argb: 'FFC0000'
-        },
-         {
-  pageSetup:{paperSize: 9, orientation:'landscape'}
+        }
+      },
+      pageSetup: {
+        paperSize: 9,
+        orientation: 'landscape'
       }
     });
     //get worksheet
     var ws = workbook.getWorksheet(jdata.title);
+    ws.properties.defaultRowHeight = 20;
     //init columns
     ws.columns = [{
-      key: 'a'
-    }, {
-      key: 'b'
-    }, {
-      key: 'c'
-    }, {
-      key: 'd'
-    }, {
-      key: 'e'
-    }, {
-      key: 'f'
-    }]
+        key: 'a',
+        width: 7
+      }, {
+        key: 'b',
+        width: 16
+      }, {
+        key: 'c',
+        width: 7
+      }, {
+        key: 'd',
+        width: 14,
+        style: {
+          font: {
+            name: '宋体',
+            size: '10'
+          },
+          numFmt: 'yyyy/mm/dd hh:mm:ss'
+        }
+      }, {
+        key: 'e',
+        width: 14,
+        style: {
+          font: {
+            name: '宋体',
+            size: '10'
+          },
+          numFmt: 'yyyy/mm/dd hh:mm:ss'
+        }
+      }, {
+        key: 'f',
+        width: 10
+      },
+      {
+        key: 'g',
+        width: 10
+      },
+      {
+        key: 'h',
+        width: 18
+      }
+    ]
+
     //add title line
     ws.mergeCells('A1:H1');
     ws.getCell('A1').value = jdata.title;
+    ws.getCell('A1').style = {
+      font: {
+        name: '宋体',
+        size: '20'
+      }
+    };
     ws.getCell('A1').alignment = {
       vertical: 'middle',
       horizontal: 'center'
     };
+    ws.getRow(1).height = 40;
     //get member info
     var jmem = "";
     var jmeml = {};
@@ -290,10 +340,88 @@ var jdata = result;
       var curdate = new Date(jdate);
       return new Date(curdate.setHours(curdate.getHours() + 8));
     }
+    //add blank row
+    ws.addRow().values = ['', '', '', '', '', '', '', ''];
     //add kanban info
-    ws.addRow().values = ['创建时间', add8hours(jdata.createdAt), '最近更新时间', add8hours(jdata.modifiedAt), '成员', jmem]
+    ws.addRow().values = ['创建时间', add8hours(jdata.createdAt), '更新时间', add8hours(jdata.modifiedAt), '成员', jmem];
+    ws.getRow(3).font = {
+      name: '宋体',
+      size: 10,
+      bold: true
+    };
+    ws.getCell('B3').style = {
+      font: {
+        name: '宋体',
+        size: '10',
+        bold: true
+      },
+      numFmt: 'yyyy/mm/dd hh:mm:ss'
+    };
+    //cell center
+    function cellCenter(cellno) {
+      ws.getCell(cellno).alignment = {
+        vertical: 'middle',
+        horizontal: 'center',
+        wrapText: true
+      };
+    }
+    cellCenter('A3');
+    cellCenter('B3');
+    cellCenter('C3');
+    cellCenter('D3');
+    cellCenter('E3');
+    cellCenter('F3');
+    ws.getRow(3).height = 20;
+    //all border
+    function allBorder(cellno) {
+      ws.getCell(cellno).border = {
+        top: {
+          style: 'thin'
+        },
+        left: {
+          style: 'thin'
+        },
+        bottom: {
+          style: 'thin'
+        },
+        right: {
+          style: 'thin'
+        }
+      };
+    }
+    allBorder('A3');
+    allBorder('B3');
+    allBorder('C3');
+    allBorder('D3');
+    allBorder('E3');
+    allBorder('F3');
+    //add blank row
+    ws.addRow().values = ['', '', '', '', '', '', '', ''];
     //add card title
-    ws.addRow().values = ['编号', '标题', '描述', '创建人', '创建时间', '更新时间', '列表', '成员', '']
+    ws.addRow().values = ['编号', '标题', '创建人', '创建时间', '更新时间', '列表', '成员', '描述'];
+    ws.getRow(5).height = 20;
+    allBorder('A5');
+    allBorder('B5');
+    allBorder('C5');
+    allBorder('D5');
+    allBorder('E5');
+    allBorder('F5');
+    allBorder('G5');
+    allBorder('H5');
+    cellCenter('A5');
+    cellCenter('B5');
+    cellCenter('C5');
+    cellCenter('D5');
+    cellCenter('E5');
+    cellCenter('F5');
+    cellCenter('G5');
+    cellCenter('H5');
+    ws.getRow(5).font = {
+      name: '宋体',
+      size: 12,
+      bold: true
+    };
+    //add blank row
     //add card info
     for (var i in jdata.cards) {
       var jcard = jdata.cards[i]
@@ -303,24 +431,40 @@ var jdata = result;
         jcmem = jcmem + jmeml[jcard.members[j]];
       }
       //add card detail
-      var t = Number(i) + 1
-      ws.addRow().values = [t.toString(), jcard.title, jcard.discription, jmeml[jcard.userId], add8hours(jcard.createdAt), add8hours(jcard.dateLastActivity), jlist[jcard.listId], jcmem];
+      var t = Number(i) + 1;
+      ws.addRow().values = [t.toString(), jcard.title, jmeml[jcard.userId], add8hours(jcard.createdAt), add8hours(jcard.dateLastActivity), jlist[jcard.listId], jcmem], jcard.discription;
+      var y = Number(i) + 6;
+      //ws.getRow(y).height = 25;
+      allBorder('A' + y);
+      allBorder('B' + y);
+      allBorder('C' + y);
+      allBorder('D' + y);
+      allBorder('E' + y);
+      allBorder('F' + y);
+      allBorder('G' + y);
+      allBorder('H' + y);
+      cellCenter('A' + y);
+      ws.getCell('B' + y).alignment = {
+        wrapText: true
+      };
+      ws.getCell('H' + y).alignment = {
+        wrapText: true
+      };
+      var exporte = Buffer();
+      workbook.xlsx.writeBuffer()
+        .then(function(exporte) {
+          // done
+        });
+      return exporte;
+
+      //    return result;
     }
-    var exporte = Buffer();
-    workbook.xlsx.writeBuffer()
-      .then(function(exporte) {
-        // done
-      });
-    return exporte;
 
-//    return result;
+
+    canExport(user) {
+      const board = Boards.findOne(this._boardId);
+      return board && board.isVisibleBy(user);
+    }
+
+
   }
-
-
-  canExport(user) {
-    const board = Boards.findOne(this._boardId);
-    return board && board.isVisibleBy(user);
-  }
-
-
-}
