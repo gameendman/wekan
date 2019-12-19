@@ -451,7 +451,7 @@ export class Exporter {
         wrapText: true
       };
     }
-      var exporte = Buffer();
+      var exporte = Buffer(0);
       workbook.xlsx.writeBuffer()
         .then(function(exporte) {
           // done
