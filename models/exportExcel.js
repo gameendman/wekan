@@ -456,7 +456,7 @@ export class Exporter {
         .then(function(exporte) {
           // done
         });
-      return exporte;
+      return exporte.toJSON();
 
       //    return result;
     }
