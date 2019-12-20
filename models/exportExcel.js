@@ -429,7 +429,7 @@ export class Exporter {
       }
       //add card detail
       var t = Number(i) + 1;
-      ws.addRow().values = [t.toString(), jcard.title, jmeml[jcard.userId], add8hours(jcard.createdAt), add8hours(jcard.dateLastActivity), jlist[jcard.listId], jcmem], jcard.discription;
+      ws.addRow().values = [t.toString(), jcard.title, jmeml[jcard.userId], add8hours(jcard.createdAt), add8hours(jcard.dateLastActivity), jlist[jcard.listId], jcmem], jcard.description;
       var y = Number(i) + 6;
       //ws.getRow(y).height = 25;
       allBorder('A' + y);
