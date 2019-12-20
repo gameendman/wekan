@@ -22,11 +22,13 @@ if (Meteor.isServer) {
    * @param {string} authToken the loginToken
    */
   var Excel = require('exceljs');
-  JsonRoutes.add('get', '/api/boards/:boardId/exportExcel', function(req, res) {
-    const boardId = req.params.boardId;
+  Picker.route('/api/boards/:boardId/exportExcel',
+  function(params,req,res,next) {
+    const boardId = params.boardId;
     let user = null;
+    //console.log(params);
 
-    const loginToken = req.query.authToken;
+    const loginToken = params.query.authToken;
     if (loginToken) {
       const hashToken = Accounts._hashLoginToken(loginToken);
       user = Meteor.users.findOne({
@@ -39,17 +41,12 @@ if (Meteor.isServer) {
         isAdmin: true
       });
     }
-
     const exporter = new Exporter(boardId);
     if (exporter.canExport(user)) {
-      JsonRoutes.sendResult(res, {
-        code: 200,
-        data: exporter.build(),
-      });
+          exporter.build(res);
+      //);
     } else {
-      // we could send an explicit error message, but on the other hand the only
-      // way to get there is by hacking the UI so let's keep it raw.
-      JsonRoutes.sendResult(res, 403);
+      res.end('导出失败');
     }
   });
 }
@@ -61,7 +58,7 @@ export class Exporter {
     this._boardId = boardId;
   }
 
-  build() {
+  build(res) {
     const fs = Npm.require('fs');
     const os = Npm.require('os');
     const path = Npm.require('path');
@@ -451,14 +448,11 @@ export class Exporter {
         wrapText: true
       };
     }
-      var exporte = Buffer(0);
-      workbook.xlsx.writeBuffer()
-        .then(function(exporte) {
-          // done
+//    var exporte=new Stream;
+      workbook.xlsx.write(res)
+        .then(function() {
         });
-      return exporte.toJSON();
-
-      //    return result;
+ //     return exporte;
     }
 
 
