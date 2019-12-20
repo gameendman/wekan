@@ -22,38 +22,38 @@ if (Meteor.isServer) {
    * @param {string} authToken the loginToken
    */
   var Excel = require('exceljs');
-  Picker.route('/api/boards/:boardId/exportExcel',
-  function(params,req,res,next) {
-    const boardId = params.boardId;
-    let user = null;
-    //console.log(params);
+  Picker.route('/api/vag/boards/:boardId/exportExcel',
+    function(params, req, res, next) {
+      const boardId = params.boardId;
+      let user = null;
+      console.log('Excel');
 
-    const loginToken = params.query.authToken;
-    if (loginToken) {
-      const hashToken = Accounts._hashLoginToken(loginToken);
-      user = Meteor.users.findOne({
-        'services.resume.loginTokens.hashedToken': hashToken,
-      });
-    } else if (!Meteor.settings.public.sandstorm) {
-      Authentication.checkUserId(req.userId);
-      user = Users.findOne({
-        _id: req.userId,
-        isAdmin: true
-      });
-    }
-    const exporter = new Exporter(boardId);
-    if (exporter.canExport(user)) {
-          exporter.build(res);
-      //);
-    } else {
-      res.end('导出失败');
-    }
-  });
+      const loginToken = params.query.authToken;
+      if (loginToken) {
+        const hashToken = Accounts._hashLoginToken(loginToken);
+        user = Meteor.users.findOne({
+          'services.resume.loginTokens.hashedToken': hashToken,
+        });
+      } else if (!Meteor.settings.public.sandstorm) {
+        Authentication.checkUserId(req.userId);
+        user = Users.findOne({
+          _id: req.userId,
+          isAdmin: true
+        });
+      }
+      const exporterExcel = new ExporterExcel(boardId);
+      if (exporterExcel.canExport(user)) {
+        exporterExcel.build(res);
+        //);
+      } else {
+        res.end('导出异常');
+      }
+    });
 }
 
 // exporter maybe is broken since Gridfs introduced, add fs and path
 
-export class Exporter {
+export class ExporterExcel {
   constructor(boardId) {
     this._boardId = boardId;
   }
@@ -429,7 +429,7 @@ export class Exporter {
       }
       //add card detail
       var t = Number(i) + 1;
-      ws.addRow().values = [t.toString(), jcard.title, jmeml[jcard.userId], add8hours(jcard.createdAt), add8hours(jcard.dateLastActivity), jlist[jcard.listId], jcmem], jcard.description;
+      ws.addRow().values = [t.toString(), jcard.title, jmeml[jcard.userId], add8hours(jcard.createdAt), add8hours(jcard.dateLastActivity), jlist[jcard.listId], jcmem, jcard.description];
       var y = Number(i) + 6;
       //ws.getRow(y).height = 25;
       allBorder('A' + y);
@@ -448,18 +448,17 @@ export class Exporter {
         wrapText: true
       };
     }
-//    var exporte=new Stream;
-      workbook.xlsx.write(res)
-        .then(function() {
-        });
- //     return exporte;
-    }
-
-
-    canExport(user) {
-      const board = Boards.findOne(this._boardId);
-      return board && board.isVisibleBy(user);
-    }
-
-
+    //    var exporte=new Stream;
+    workbook.xlsx.write(res)
+      .then(function() {});
+    //     return exporte;
   }
+
+
+  canExport(user) {
+    const board = Boards.findOne(this._boardId);
+    return board && board.isVisibleBy(user);
+  }
+
+
+}

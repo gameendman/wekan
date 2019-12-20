@@ -232,11 +232,11 @@ Template.boardMenuPopup.helpers({
     const queryParams = {
       authToken: Accounts._storedLoginToken(),
     };
-    return FlowRouter.path('/api/boards/:boardId/exportExcel', params, queryParams);
+    return FlowRouter.path('/api/vag/boards/:boardId/exportExcel', params, queryParams);
   },
   exportFilenameExcel() {
     const boardId = Session.get('currentBoard');
-    return `wekan-export-board-${boardId}.xlsx`;
+    return `wekan-export-board-excel-${boardId}.xlsx`;
   },
 });
 

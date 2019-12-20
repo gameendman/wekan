@@ -25,6 +25,7 @@ if (Meteor.isServer) {
     const boardId = req.params.boardId;
     let user = null;
 
+    console.log('JSON');
     const loginToken = req.query.authToken;
     if (loginToken) {
       const hashToken = Accounts._hashLoginToken(loginToken);
@@ -33,7 +34,10 @@ if (Meteor.isServer) {
       });
     } else if (!Meteor.settings.public.sandstorm) {
       Authentication.checkUserId(req.userId);
-      user = Users.findOne({ _id: req.userId, isAdmin: true });
+      user = Users.findOne({
+        _id: req.userId,
+        isAdmin: true
+      });
     }
 
     const exporter = new Exporter(boardId);
@@ -62,10 +66,14 @@ export class Exporter {
     const os = Npm.require('os');
     const path = Npm.require('path');
 
-    const byBoard = { boardId: this._boardId };
+    const byBoard = {
+      boardId: this._boardId
+    };
     const byBoardNoLinked = {
       boardId: this._boardId,
-      linkedId: { $in: ['', null] },
+      linkedId: {
+        $in: ['', null]
+      },
     };
     // we do not want to retrieve boardId in related elements
     const noBoardId = {
@@ -87,10 +95,15 @@ export class Exporter {
     result.lists = Lists.find(byBoard, noBoardId).fetch();
     result.cards = Cards.find(byBoardNoLinked, noBoardId).fetch();
     result.swimlanes = Swimlanes.find(byBoard, noBoardId).fetch();
-    result.customFields = CustomFields.find(
-      { boardIds: { $in: [this.boardId] } },
-      { fields: { boardId: 0 } },
-    ).fetch();
+    result.customFields = CustomFields.find({
+      boardIds: {
+        $in: [this.boardId]
+      }
+    }, {
+      fields: {
+        boardId: 0
+      }
+    }, ).fetch();
     result.comments = CardComments.find(byBoard, noBoardId).fetch();
     result.activities = Activities.find(byBoard, noBoardId).fetch();
     result.rules = Rules.find(byBoard, noBoardId).fetch();
@@ -118,16 +131,14 @@ export class Exporter {
     });
     result.rules.forEach(rule => {
       result.triggers.push(
-        ...Triggers.find(
-          {
+        ...Triggers.find({
             _id: rule.triggerId,
           },
           noBoardId,
         ).fetch(),
       );
       result.actions.push(
-        ...Actions.find(
-          {
+        ...Actions.find({
             _id: rule.actionId,
           },
           noBoardId,
