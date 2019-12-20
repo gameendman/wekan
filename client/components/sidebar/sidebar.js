@@ -232,7 +232,7 @@ Template.boardMenuPopup.helpers({
     const queryParams = {
       authToken: Accounts._storedLoginToken(),
     };
-    return FlowRouter.path('/api/vag/boards/:boardId/exportExcel', params, queryParams);
+    return FlowRouter.path('/vag/api/boards/:boardId/exportExcel', params, queryParams);
   },
   exportFilenameExcel() {
     const boardId = Session.get('currentBoard');

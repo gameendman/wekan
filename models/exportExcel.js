@@ -22,7 +22,7 @@ if (Meteor.isServer) {
    * @param {string} authToken the loginToken
    */
   var Excel = require('exceljs');
-  Picker.route('/api/vag/boards/:boardId/exportExcel',
+  Picker.route('/vag/api/boards/:boardId/exportExcel',
     function(params, req, res, next) {
       const boardId = params.boardId;
       let user = null;
@@ -46,7 +46,7 @@ if (Meteor.isServer) {
         exporterExcel.build(res);
         //);
       } else {
-        res.end('导出异常');
+        res.end('导!出!异!常!');
       }
     });
 }
