@@ -64,7 +64,7 @@ REM # https://github.com/wekan/wekan/pull/2536
 REM # System timelines will be showing any user modification for
 REM # dueat startat endat receivedat, also notification to
 REM # the watchers and if any card is due, about due or past due.
-REM # Notify due days, default is None. 
+REM # Notify due days, default is None.
 REM # SET NOTIFY_DUE_DAYS_BEFORE_AND_AFTER=2,0
 REM # Notify due at hour of day. Default every morning at 8am. Can be 0-23.
 REM # If env variable has parsing error, use default. Notification sent to watchers.

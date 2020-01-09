@@ -94,7 +94,8 @@ function initSortable(boardComponent, $listsDom) {
     return (
       Meteor.user() &&
       Meteor.user().isBoardMember() &&
-      !Meteor.user().isCommentOnly()
+      !Meteor.user().isCommentOnly() &&
+      !Meteor.user().isWorker()
     );
   }
 
@@ -104,12 +105,10 @@ function initSortable(boardComponent, $listsDom) {
     if (currentUser) {
       showDesktopDragHandles = (currentUser.profile || {})
         .showDesktopDragHandles;
+    } else if (cookies.has('showDesktopDragHandles')) {
+      showDesktopDragHandles = true;
     } else {
-      if (cookies.has('showDesktopDragHandles')) {
-        showDesktopDragHandles = true;
-      } else {
-        showDesktopDragHandles = false;
-      }
+      showDesktopDragHandles = false;
     }
 
     if (!Utils.isMiniScreen() && showDesktopDragHandles) {
@@ -133,6 +132,15 @@ function initSortable(boardComponent, $listsDom) {
         // MultiSelection.isActive() || !userIsMember(),
       );
     }
+
+    $listsDom.sortable(
+      'option',
+      'disabled',
+      // Disable drag-dropping when user is not member
+      Meteor.user().isWorker(),
+      // Not disable drag-dropping while in multi-selection mode
+      // MultiSelection.isActive() || !userIsMember(),
+    );
   });
 }
 
@@ -182,12 +190,10 @@ BlazeComponent.extendComponent({
           if (currentUser) {
             showDesktopDragHandles = (currentUser.profile || {})
               .showDesktopDragHandles;
+          } else if (cookies.has('showDesktopDragHandles')) {
+            showDesktopDragHandles = true;
           } else {
-            if (cookies.has('showDesktopDragHandles')) {
-              showDesktopDragHandles = true;
-            } else {
-              showDesktopDragHandles = false;
-            }
+            showDesktopDragHandles = false;
           }
 
           const noDragInside = ['a', 'input', 'textarea', 'p'].concat(
@@ -276,19 +282,18 @@ Template.swimlane.helpers({
     currentUser = Meteor.user();
     if (currentUser) {
       return (currentUser.profile || {}).showDesktopDragHandles;
+    } else if (cookies.has('showDesktopDragHandles')) {
+      return true;
     } else {
-      if (cookies.has('showDesktopDragHandles')) {
-        return true;
-      } else {
-        return false;
-      }
+      return false;
     }
   },
   canSeeAddList() {
     return (
       Meteor.user() &&
       Meteor.user().isBoardMember() &&
-      !Meteor.user().isCommentOnly()
+      !Meteor.user().isCommentOnly() &&
+      !Meteor.user().isWorker()
     );
   },
 });

@@ -71,7 +71,7 @@
       # dueat startat endat receivedat, also notification to
       # the watchers and if any card is due, about due or past due.
       #
-      # Notify due days, default is None. 
+      # Notify due days, default is None.
       #export NOTIFY_DUE_DAYS_BEFORE_AND_AFTER=2,0
       # it will notify user 2 days before due day and on the due day
       #
