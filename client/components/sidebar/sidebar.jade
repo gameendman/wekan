@@ -189,14 +189,6 @@ template(name="boardMenuPopup")
     if currentUser.isBoardAdmin
       hr
       ul.pop-over-list
-        //li: a(href="{{exportUrl}}", download="{{exportFilename}}") {{_ 'export-board'}}
-        //li: a(href="{{exportUrlExcel}}", download="{{exportFilenameExcel}}") {{_ 'export-board-excel'}}
-       // unless currentBoard.isTemplatesBoard
-        //  li: a.js-archive-board {{_ 'archive-board'}}
-        //li: a.js-outgoing-webhooks {{_ 'outgoing-webhooks'}}
-     // hr
-     // ul.pop-over-list
-      //  li: a.js-subtask-settings {{_ 'subtask-settings'}}
         li
           a(href="{{exportUrl}}", download="{{exportFilename}}")
             i.fa.fa-share-alt
@@ -205,7 +197,7 @@ template(name="boardMenuPopup")
           a(href="{{exportUrlExcel}}", download="{{exportFilenameExcel}}")
             i.fa.fa-share-alt
             | {{_ 'export-board-excel'}}
-      li
+        li
           a.js-outgoing-webhooks
             i.fa.fa-globe
             | {{_ 'outgoing-webhooks'}}

@@ -119,7 +119,6 @@ BlazeComponent.extendComponent({
           } else {
             cookies.set('hiddenMinicardLabelText', 'true');
           }
-        }
       },
       'click .js-shortcuts'() {
         FlowRouter.go('shortcuts');
