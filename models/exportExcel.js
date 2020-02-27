@@ -332,6 +332,11 @@ export class ExporterExcel {
     for (var k in jdata.lists) {
       jlist[jdata.lists[k]._id] = jdata.lists[k].title;
     }
+    //get kanban label info
+    var jlabel= {};
+    for (var k in jdata.labels) {
+      jlabel[jdata.labels[k]._id] = jdata.labels[k].name;
+    }
     //add data +8 hours
     function add8hours(jdate) {
       var curdate = new Date(jdate);
@@ -393,9 +398,9 @@ export class ExporterExcel {
     allBorder('E3');
     allBorder('F3');
     //add blank row
-    ws.addRow().values = ['', '', '', '', '', '', '', ''];
+    ws.addRow().values = ['', '', '', '', '', '', '', '', ''];
     //add card title
-    ws.addRow().values = ['编号', '标题', '创建人', '创建时间', '更新时间', '列表', '成员', '描述'];
+    ws.addRow().values = ['编号', '标题', '创建人', '创建时间', '更新时间', '列表', '成员', '描述', '标签'];
     ws.getRow(5).height = 20;
     allBorder('A5');
     allBorder('B5');
@@ -405,6 +410,7 @@ export class ExporterExcel {
     allBorder('F5');
     allBorder('G5');
     allBorder('H5');
+    allBorder('I5');
     cellCenter('A5');
     cellCenter('B5');
     cellCenter('C5');
@@ -413,6 +419,7 @@ export class ExporterExcel {
     cellCenter('F5');
     cellCenter('G5');
     cellCenter('H5');
+    cellCenter('I5');
     ws.getRow(5).font = {
       name: '宋体',
       size: 12,
@@ -425,11 +432,20 @@ export class ExporterExcel {
       //get member info
       var jcmem = "";
       for (var j in jcard.members) {
-        jcmem = jcmem + jmeml[jcard.members[j]];
+        jcmem += jmeml[jcard.members[j]];
+        jcmem += " ";
       }
+      //get card label info
+      var jclabel ="";
+      for (var j in jcard.labelIds) {
+        jclabel += jlabel[jcard.labelIds[j]];
+        jclabel += " ";
+      }
+//      console.log(jclabel);
+
       //add card detail
       var t = Number(i) + 1;
-      ws.addRow().values = [t.toString(), jcard.title, jmeml[jcard.userId], add8hours(jcard.createdAt), add8hours(jcard.dateLastActivity), jlist[jcard.listId], jcmem, jcard.description];
+      ws.addRow().values = [t.toString(), jcard.title, jmeml[jcard.userId], add8hours(jcard.createdAt), add8hours(jcard.dateLastActivity), jlist[jcard.listId], jcmem, jcard.description, jclabel];
       var y = Number(i) + 6;
       //ws.getRow(y).height = 25;
       allBorder('A' + y);
@@ -440,11 +456,15 @@ export class ExporterExcel {
       allBorder('F' + y);
       allBorder('G' + y);
       allBorder('H' + y);
+      allBorder('I' + y);
       cellCenter('A' + y);
       ws.getCell('B' + y).alignment = {
         wrapText: true
       };
       ws.getCell('H' + y).alignment = {
+        wrapText: true
+      };
+      ws.getCell('I' + y).alignment = {
         wrapText: true
       };
     }
