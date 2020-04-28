@@ -169,19 +169,19 @@ export class ExporterExcel {
       });
       readStream.pipe(tmpWriteable);
     };
-    const getBase64DataSync = Meteor.wrapAsync(getBase64Data);
-    result.attachments = Attachments.find(byBoard)
-      .fetch()
-      .map(attachment => {
-        return {
-          _id: attachment._id,
-          cardId: attachment.cardId,
+    //const getBase64DataSync = Meteor.wrapAsync(getBase64Data);
+    //result.attachments = Attachments.find(byBoard)
+     // .fetch()
+      //.map(attachment => {
+       // return {
+        //  _id: attachment._id,
+         // cardId: attachment.cardId,
           // url: FlowRouter.url(attachment.url()),
-          file: getBase64DataSync(attachment),
-          name: attachment.original.name,
-          type: attachment.original.type,
-        };
-      });
+          //file: getBase64DataSync(attachment),
+        //  name: attachment.original.name,
+         // type: attachment.original.type,
+      //  };
+      //});
 
     // we also have to export some user data - as the other elements only
     // include id but we have to be careful:
