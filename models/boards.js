@@ -278,6 +278,7 @@ Boards.attachSchema(
       optional: true,
       defaultValue: null,
     },
+
     subtasksDefaultListId: {
       /**
        * The default List ID assigned to subtasks.
@@ -286,6 +287,19 @@ Boards.attachSchema(
       optional: true,
       defaultValue: null,
     },
+
+    dateSettingsDefaultBoardId: {
+      type: String,
+      optional: true,
+      defaultValue: null,
+    },
+
+    dateSettingsDefaultListId: {
+      type: String,
+      optional: true,
+      defaultValue: null,
+    },
+
     allowsSubtasks: {
       /**
        * Does the board allows subtasks?
@@ -293,6 +307,127 @@ Boards.attachSchema(
       type: Boolean,
       defaultValue: true,
     },
+
+    allowsAttachments: {
+      /**
+       * Does the board allows attachments?
+       */
+      type: Boolean,
+      defaultValue: true,
+    },
+
+    allowsChecklists: {
+      /**
+       * Does the board allows checklists?
+       */
+      type: Boolean,
+      defaultValue: true,
+    },
+
+    allowsComments: {
+      /**
+       * Does the board allows comments?
+       */
+      type: Boolean,
+      defaultValue: true,
+    },
+
+    allowsDescriptionTitle: {
+      /**
+       * Does the board allows description title?
+       */
+      type: Boolean,
+      defaultValue: true,
+    },
+
+    allowsDescriptionText: {
+      /**
+       * Does the board allows description text?
+       */
+      type: Boolean,
+      defaultValue: true,
+    },
+
+    allowsActivities: {
+      /**
+       * Does the board allows comments?
+       */
+      type: Boolean,
+      defaultValue: true,
+    },
+
+    allowsLabels: {
+      /**
+       * Does the board allows labels?
+       */
+      type: Boolean,
+      defaultValue: true,
+    },
+
+    allowsAssignee: {
+      /**
+       * Does the board allows assignee?
+       */
+      type: Boolean,
+      defaultValue: true,
+    },
+
+    allowsMembers: {
+      /**
+       * Does the board allows members?
+       */
+      type: Boolean,
+      defaultValue: true,
+    },
+
+    allowsRequestedBy: {
+      /**
+       * Does the board allows requested by?
+       */
+      type: Boolean,
+      defaultValue: true,
+    },
+
+    allowsAssignedBy: {
+      /**
+       * Does the board allows requested by?
+       */
+      type: Boolean,
+      defaultValue: true,
+    },
+
+    allowsReceivedDate: {
+      /**
+       * Does the board allows received date?
+       */
+      type: Boolean,
+      defaultValue: true,
+    },
+
+    allowsStartDate: {
+      /**
+       * Does the board allows start date?
+       */
+      type: Boolean,
+      defaultValue: true,
+    },
+
+    allowsEndDate: {
+      /**
+       * Does the board allows end date?
+       */
+      type: Boolean,
+      defaultValue: true,
+    },
+
+    allowsDueDate: {
+      /**
+       * Does the board allows due date?
+       */
+      type: Boolean,
+      defaultValue: true,
+    },
+
     presentParentTask: {
       /**
        * Controls how to present the parent task:
@@ -357,6 +492,14 @@ Boards.attachSchema(
        */
       type: String,
       defaultValue: 'board',
+    },
+    sort: {
+      /**
+       * Sort value
+       */
+      type: Number,
+      decimal: true,
+      defaultValue: -1,
     },
   }),
 );
@@ -671,7 +814,11 @@ Boards.helpers({
     if (term) {
       const regex = new RegExp(term, 'i');
 
-      query.$or = [{ title: regex }, { description: regex }];
+      query.$or = [
+        { title: regex },
+        { description: regex },
+        { customFields: { $elemMatch: { value: regex } } },
+      ];
     }
 
     return Cards.find(query, projection);
@@ -710,6 +857,39 @@ Boards.helpers({
     return Boards.findOne(this.getDefaultSubtasksBoardId());
   },
 
+  //Date Settings option such as received date, start date and so on.
+  getDefaultDateSettingsBoardId() {
+    if (
+      this.dateSettingsDefaultBoardId === null ||
+      this.dateSettingsDefaultBoardId === undefined
+    ) {
+      this.dateSettingsDefaultBoardId = Boards.insert({
+        title: `^${this.title}^`,
+        permission: this.permission,
+        members: this.members,
+        color: this.color,
+        description: TAPi18n.__('default-dates-board', {
+          board: this.title,
+        }),
+      });
+
+      Swimlanes.insert({
+        title: TAPi18n.__('default'),
+        boardId: this.dateSettingsDefaultBoardId,
+      });
+      Boards.update(this._id, {
+        $set: {
+          dateSettingsDefaultBoardId: this.dateSettingsDefaultBoardId,
+        },
+      });
+    }
+    return this.dateSettingsDefaultBoardId;
+  },
+
+  getDefaultDateSettingsBoard() {
+    return Boards.findOne(this.getDefaultDateSettingsBoardId());
+  },
+
   getDefaultSubtasksListId() {
     if (
       this.subtasksDefaultListId === null ||
@@ -726,6 +906,24 @@ Boards.helpers({
 
   getDefaultSubtasksList() {
     return Lists.findOne(this.getDefaultSubtasksListId());
+  },
+
+  getDefaultDateSettingsListId() {
+    if (
+      this.dateSettingsDefaultListId === null ||
+      this.dateSettingsDefaultListId === undefined
+    ) {
+      this.dateSettingsDefaultListId = Lists.insert({
+        title: TAPi18n.__('queue'),
+        boardId: this._id,
+      });
+      this.setDateSettingsDefaultListId(this.dateSettingsDefaultListId);
+    }
+    return this.dateSettingsDefaultListId;
+  },
+
+  getDefaultDateSettingsList() {
+    return Lists.findOne(this.getDefaultDateSettingsListId());
   },
 
   getDefaultSwimline() {
@@ -925,6 +1123,66 @@ Boards.mutations({
     return { $set: { allowsSubtasks } };
   },
 
+  setAllowsMembers(allowsMembers) {
+    return { $set: { allowsMembers } };
+  },
+
+  setAllowsChecklists(allowsChecklists) {
+    return { $set: { allowsChecklists } };
+  },
+
+  setAllowsAssignee(allowsAssignee) {
+    return { $set: { allowsAssignee } };
+  },
+
+  setAllowsAssignedBy(allowsAssignedBy) {
+    return { $set: { allowsAssignedBy } };
+  },
+
+  setAllowsRequestedBy(allowsRequestedBy) {
+    return { $set: { allowsRequestedBy } };
+  },
+
+  setAllowsAttachments(allowsAttachments) {
+    return { $set: { allowsAttachments } };
+  },
+
+  setAllowsLabels(allowsLabels) {
+    return { $set: { allowsLabels } };
+  },
+
+  setAllowsComments(allowsComments) {
+    return { $set: { allowsComments } };
+  },
+
+  setAllowsDescriptionTitle(allowsDescriptionTitle) {
+    return { $set: { allowsDescriptionTitle } };
+  },
+
+  setAllowsDescriptionText(allowsDescriptionText) {
+    return { $set: { allowsDescriptionText } };
+  },
+
+  setAllowsActivities(allowsActivities) {
+    return { $set: { allowsActivities } };
+  },
+
+  setAllowsReceivedDate(allowsReceivedDate) {
+    return { $set: { allowsReceivedDate } };
+  },
+
+  setAllowsStartDate(allowsStartDate) {
+    return { $set: { allowsStartDate } };
+  },
+
+  setAllowsEndDate(allowsEndDate) {
+    return { $set: { allowsEndDate } };
+  },
+
+  setAllowsDueDate(allowsDueDate) {
+    return { $set: { allowsDueDate } };
+  },
+
   setSubtasksDefaultBoardId(subtasksDefaultBoardId) {
     return { $set: { subtasksDefaultBoardId } };
   },
@@ -935,6 +1193,10 @@ Boards.mutations({
 
   setPresentParentTask(presentParentTask) {
     return { $set: { presentParentTask } };
+  },
+
+  move(sortIndex) {
+    return { $set: { sort: sortIndex } };
   },
 });
 
@@ -1032,6 +1294,17 @@ if (Meteor.isServer) {
     },
   });
 }
+
+// Insert new board at last position in sort order.
+Boards.before.insert((userId, doc) => {
+  const lastBoard = Boards.findOne(
+    { sort: { $exists: true } },
+    { sort: { sort: -1 } },
+  );
+  if (lastBoard && typeof lastBoard.sort !== 'undefined') {
+    doc.sort = lastBoard.sort + 1;
+  }
+});
 
 if (Meteor.isServer) {
   // Let MongoDB ensure that a member is not included twice in the same board
@@ -1216,7 +1489,7 @@ if (Meteor.isServer) {
           'members.userId': paramUserId,
         },
         {
-          sort: ['title'],
+          sort: { sort: 1 /* boards default sorting */ },
         },
       ).map(function(board) {
         return {
@@ -1246,7 +1519,12 @@ if (Meteor.isServer) {
       Authentication.checkUserId(req.userId);
       JsonRoutes.sendResult(res, {
         code: 200,
-        data: Boards.find({ permission: 'public' }).map(function(doc) {
+        data: Boards.find(
+          { permission: 'public' },
+          {
+            sort: { sort: 1 /* boards default sorting */ },
+          },
+        ).map(function(doc) {
           return {
             _id: doc._id,
             title: doc.title,

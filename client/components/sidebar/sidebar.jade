@@ -72,6 +72,108 @@ template(name="boardChangeColorPopup")
           if isSelected
             i.fa.fa-check
 
+template(name="boardCardSettingsPopup")
+  form.board-card-settings
+    h3 {{_ 'show-on-card'}}
+    div.check-div
+      a.flex.js-field-has-receiveddate(class="{{#if allowsReceivedDate}}is-checked{{/if}}")
+        .materialCheckBox(class="{{#if allowsReceivedDate}}is-checked{{/if}}")
+        span
+          i.fa.fa-sign-out
+          | {{_ 'card-received'}}
+    div.check-div
+      a.flex.js-field-has-startdate(class="{{#if allowsStartDate}}is-checked{{/if}}")
+        .materialCheckBox(class="{{#if allowsStartDate}}is-checked{{/if}}")
+        span
+          i.fa.fa-hourglass-start
+          | {{_ 'card-start'}}
+    div.check-div
+      a.flex.js-field-has-duedate(class="{{#if allowsDueDate}}is-checked{{/if}}")
+        .materialCheckBox(class="{{#if allowsDueDate}}is-checked{{/if}}")
+        span
+          i.fa.fa-sign-in
+          | {{_ 'card-due'}}
+    div.check-div
+      a.flex.js-field-has-enddate(class="{{#if allowsEndDate}}is-checked{{/if}}")
+        .materialCheckBox(class="{{#if allowsEndDate}}is-checked{{/if}}")
+        span
+          i.fa.fa-hourglass-end
+          | {{_ 'card-end'}}
+    div.check-div
+      a.flex.js-field-has-members(class="{{#if allowsMembers}}is-checked{{/if}}")
+        .materialCheckBox(class="{{#if allowsMembers}}is-checked{{/if}}")
+        span
+          i.fa.fa-users
+          | {{_ 'members'}}
+    div.check-div
+      a.flex.js-field-has-assignee(class="{{#if allowsAssignee}}is-checked{{/if}}")
+        .materialCheckBox(class="{{#if allowsAssignee}}is-checked{{/if}}")
+        span
+          i.fa.fa-user
+          | {{_ 'assignee'}}
+    div.check-div
+      a.flex.js-field-has-assigned-by(class="{{#if allowsAssignedBy}}is-checked{{/if}}")
+        .materialCheckBox(class="{{#if allowsAssignedBy}}is-checked{{/if}}")
+        span
+          i.fa.fa-shopping-cart
+          | {{_ 'assigned-by'}}
+    div.check-div
+      a.flex.js-field-has-requested-by(class="{{#if allowsRequestedBy}}is-checked{{/if}}")
+        .materialCheckBox(class="{{#if allowsRequestedBy}}is-checked{{/if}}")
+        span
+          i.fa.fa-user-plus
+          | {{_ 'requested-by'}}
+    div.check-div
+      a.flex.js-field-has-labels(class="{{#if allowsLabels}}is-checked{{/if}}")
+        .materialCheckBox(class="{{#if allowsLabels}}is-checked{{/if}}")
+        span
+          i.fa.fa-tags
+          | {{_ 'labels'}}
+    div.check-div
+      a.flex.js-field-has-description-title(class="{{#if allowsDescriptionTitle}}is-checked{{/if}}")
+        .materialCheckBox(class="{{#if allowsDescriptionTitle}}is-checked{{/if}}")
+        span
+          i.fa.fa-align-left
+          | {{_ 'description'}}
+          | {{_ 'title'}}
+    div.check-div
+      a.flex.js-field-has-description-text(class="{{#if allowsDescriptionText}}is-checked{{/if}}")
+        .materialCheckBox(class="{{#if allowsDescriptionText}}is-checked{{/if}}")
+        span
+          i.fa.fa-align-left
+          | {{_ 'description'}}
+          | {{_ 'custom-field-text'}}
+    div.check-div
+      a.flex.js-field-has-checklists(class="{{#if allowsChecklists}}is-checked{{/if}}")
+        .materialCheckBox(class="{{#if allowsChecklists}}is-checked{{/if}}")
+        span
+          i.fa.fa-check
+          | {{_ 'checklists'}}
+    div.check-div
+      a.flex.js-field-has-subtasks(class="{{#if allowsSubtasks}}is-checked{{/if}}")
+        .materialCheckBox(class="{{#if allowsSubtasks}}is-checked{{/if}}")
+        span
+          i.fa.fa-sitemap
+          | {{_ 'subtasks'}}
+    div.check-div
+      a.flex.js-field-has-attachments(class="{{#if allowsAttachments}}is-checked{{/if}}")
+        .materialCheckBox(class="{{#if allowsAttachments}}is-checked{{/if}}")
+        span
+          i.fa.fa-paperclip
+          | {{_ 'attachments'}}
+    //div.check-div
+    //  a.flex.js-field-has-comments(class="{{#if allowsComments}}is-checked{{/if}}")
+    //    .materialCheckBox(class="{{#if allowsComments}}is-checked{{/if}}")
+    //    span
+    //      i.fa.fa-comment-o
+    //      | {{_ 'comment'}}
+    //div.check-div
+    //  a.flex.js-field-has-activities(class="{{#if allowsActivities}}is-checked{{/if}}")
+    //    .materialCheckBox(class="{{#if allowsActivities}}is-checked{{/if}}")
+    //    span
+    //      i.fa.fa-history
+    //      | {{_ 'activities'}}
+
 template(name="boardSubtaskSettingsPopup")
   form.board-subtask-settings
     h3 {{_ 'show-parent-in-minicard'}}
@@ -143,7 +245,7 @@ template(name="outgoingWebhooksPopup")
         b &nbsp;
         .materialCheckBox(class="{{#unless enabled}}is-checked{{/unless}}")
       input.js-outgoing-webhooks-title(placeholder="{{_ 'webhook-title'}}" type="text" name="title" value=title)
-      input.js-outgoing-webhooks-url(type="text" name="url" value=url autofocus)
+      input.js-outgoing-webhooks-url(type="text" name="url" value=url)
       input.js-outgoing-webhooks-token(placeholder="{{_ 'webhook-token' }}" type="text" value=token name="token")
       select.js-outgoing-webhooks-type(name="type")
           each _type in types
@@ -155,7 +257,7 @@ template(name="outgoingWebhooksPopup")
       input(type="hidden" value=_id name="id")
       input.primary.wide(type="submit" value="{{_ 'save'}}")
   form.integration-form
-    input.js-outgoing-webhooks-title(placeholder="{{_ 'webhook-title'}}" type="text" name="title" autofocus)
+    input.js-outgoing-webhooks-title(placeholder="{{_ 'webhook-title'}}" type="text" name="title")
     input.js-outgoing-webhooks-url(placeholder="{{_ 'URL' }}" type="text" name="url")
     input.js-outgoing-webhooks-token(placeholder="{{_ 'webhook-token' }}" type="text" name="token")
     select.js-outgoing-webhooks-type(name="type")
@@ -165,7 +267,14 @@ template(name="outgoingWebhooksPopup")
 
 template(name="boardMenuPopup")
   ul.pop-over-list
-    li: a.js-custom-fields {{_ 'custom-fields'}}
+    li
+      a.js-open-rules-view(title="{{_ 'rules'}}")
+        i.fa.fa-magic
+        | {{_ 'rules'}}
+    li
+      a.js-custom-fields
+        i.fa.fa-list-alt
+        | {{_ 'custom-fields'}}
     li
       a.js-open-archives
         i.fa.fa-archive
@@ -189,10 +298,11 @@ template(name="boardMenuPopup")
     if currentUser.isBoardAdmin
       hr
       ul.pop-over-list
-        li
-          a(href="{{exportUrl}}", download="{{exportFilename}}")
-            i.fa.fa-share-alt
-            | {{_ 'export-board'}}
+        if withApi
+          li
+            a(href="{{exportUrl}}", download="{{exportFilename}}")
+              i.fa.fa-share-alt
+              | {{_ 'export-board'}}
         li
           a(href="{{exportUrlExcel}}", download="{{exportFilenameExcel}}")
             i.fa.fa-share-alt
@@ -201,6 +311,10 @@ template(name="boardMenuPopup")
           a.js-outgoing-webhooks
             i.fa.fa-globe
             | {{_ 'outgoing-webhooks'}}
+        li
+          a.js-card-settings
+            i.fa.fa-id-card-o
+            | {{_ 'card-settings'}}
         li
           a.js-subtask-settings
             i.fa.fa-sitemap
@@ -216,11 +330,12 @@ template(name="boardMenuPopup")
   if isSandstorm
     hr
     ul.pop-over-list
-      li
-        a(href="{{exportUrl}}", download="{{exportFilename}}")
-          i.fa.fa-share-alt
-          i.fa.fa-sign-out
-          | {{_ 'export-board'}}
+      if withApi
+        li
+          a(href="{{exportUrl}}", download="{{exportFilename}}")
+            i.fa.fa-share-alt
+            i.fa.fa-sign-out
+            | {{_ 'export-board'}}
       li
         a.js-import-board
           i.fa.fa-share-alt
@@ -235,6 +350,12 @@ template(name="boardMenuPopup")
         a.js-outgoing-webhooks
           i.fa.fa-globe
           | {{_ 'outgoing-webhooks'}}
+    hr
+    ul.pop-over-list
+      li
+        a.js-card-settings
+          i.fa.fa-id-card-o
+          | {{_ 'card-settings'}}
     hr
     ul.pop-over-list
       li
